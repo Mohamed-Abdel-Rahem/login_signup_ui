@@ -1,7 +1,15 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
+import 'package:test/screen/homePage.dart';
+import 'package:test/screen/reg.dart';
+import 'package:test/widgets/customText.dart';
+import 'package:test/widgets/customTextButton.dart';
+import 'package:test/widgets/showSnackBar.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
+  static String id = 'LoginScreen';
 
   @override
   _LoginScreenState createState() => _LoginScreenState();
@@ -9,9 +17,10 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
+  String? email, password;
+
   bool _isPasswordVisible = false;
+  bool isLoading = false;
 
   void _togglePasswordVisibility() {
     setState(() {
@@ -19,100 +28,78 @@ class _LoginScreenState extends State<LoginScreen> {
     });
   }
 
-  void _validateAndSubmit() {
-    if (_formKey.currentState!.validate()) {
-      // Handle login logic
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Processing Login...')),
-      );
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      resizeToAvoidBottomInset:
-          true, // Allow resizing when the keyboard is visible
-      body: SingleChildScrollView(
-        // Wrap content to make it scrollable
-        child: Stack(
-          children: [
-            // Background gradient
-            Container(
-              height: MediaQuery.of(context).size.height,
-              width: double.infinity,
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(colors: [
-                  Colors.blue,
-                  Color(0xff281537),
-                ]),
-              ),
-              child: const Padding(
-                padding: EdgeInsets.only(top: 60.0, left: 22),
-                child: Text(
-                  'Hello\nSign in!',
-                  style: TextStyle(
-                    fontSize: 30,
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ),
-            // Foreground container
-            Padding(
-              padding: const EdgeInsets.only(top: 200.0),
-              child: Container(
-                decoration: const BoxDecoration(
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(40),
-                    topRight: Radius.circular(40),
-                  ),
-                  color: Colors.white,
-                ),
-                height: MediaQuery.of(context).size.height - 200,
+    return ModalProgressHUD(
+      color: Colors.black,
+      inAsyncCall: isLoading,
+      child: Scaffold(
+        resizeToAvoidBottomInset:
+            true, // Allow resizing when the keyboard is visible
+        body: SingleChildScrollView(
+          // Wrap content to make it scrollable
+          child: Stack(
+            children: [
+              // Background gradient
+              Container(
+                height: MediaQuery.of(context).size.height,
                 width: double.infinity,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 18.0),
-                  child: Form(
-                    key: _formKey,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        // Email field
-                        TextFormField(
-                          controller: _emailController,
-                          decoration: const InputDecoration(
-                            suffixIcon: Icon(
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(colors: [
+                    Colors.blue,
+                    Color(0xff281537),
+                  ]),
+                ),
+                child: const Padding(
+                  padding: EdgeInsets.only(top: 60.0, left: 22),
+                  child: Text(
+                    'Hello\nSign in!',
+                    style: TextStyle(
+                      fontSize: 30,
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+              // Foreground container
+              Padding(
+                padding: const EdgeInsets.only(top: 200.0),
+                child: Container(
+                  decoration: const BoxDecoration(
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(40),
+                      topRight: Radius.circular(40),
+                    ),
+                    color: Colors.white,
+                  ),
+                  height: MediaQuery.of(context).size.height - 200,
+                  width: double.infinity,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 18.0),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // Email field
+                          TextFormFieldCallBack(
+                            onChanged: (value) {
+                              email = value;
+                            },
+                            suffexIcon: const Icon(
                               Icons.email,
                               color: Colors.grey,
                             ),
-                            label: Text(
-                              'Email',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Colors.blue,
-                              ),
-                            ),
+                            dataLabelText: 'Email',
                           ),
-                          keyboardType: TextInputType.emailAddress,
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Email cannot be empty';
-                            } else if (!RegExp(
-                                    r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$')
-                                .hasMatch(value)) {
-                              return 'Enter a valid email';
-                            }
-                            return null;
-                          },
-                        ),
-                        const SizedBox(height: 20),
-                        // Password field
-                        TextFormField(
-                          controller: _passwordController,
-                          decoration: InputDecoration(
-                            suffixIcon: IconButton(
+                          const SizedBox(height: 20),
+                          // Password field
+                          TextFormFieldCallBack(
+                            onChanged: (value) {
+                              password = value;
+                            },
+                            suffexIcon: IconButton(
                               icon: Icon(
                                 _isPasswordVisible
                                     ? Icons.visibility
@@ -121,98 +108,98 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                               onPressed: _togglePasswordVisibility,
                             ),
-                            label: const Text(
-                              'Password',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Colors.blue,
+                            obscureText: !_isPasswordVisible,
+                            dataLabelText: 'password',
+                          ),
+                          const SizedBox(height: 70),
+                          // Sign In button
+                          GestureDetector(
+                            onTap: () async {
+                              if (_formKey.currentState!.validate()) {
+                                isLoading = true;
+                                setState(() {});
+                                try {
+                                  await loginUsers();
+                                  Navigator.pushReplacementNamed(
+                                      context, Homepage.id,
+                                      arguments: email);
+                                } on FirebaseAuthException catch (ex) {
+                                  if (ex.code == 'user-not-found') {
+                                    showSnackBar(context, 'User not found');
+                                  } else if (ex.code == 'wrong-password') {
+                                    showSnackBar(context, 'Wrong password');
+                                  } else {
+                                    print(ex.message);
+                                  }
+                                } catch (ex) {
+                                  showSnackBar(context, 'There was an error');
+                                }
+                                isLoading = false;
+                                setState(() {});
+                              } else {
+                                showSnackBar(
+                                    context, 'Please enter email and password');
+                              }
+                            },
+                            child: Container(
+                              height: 55,
+                              width: 300,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(30),
+                                gradient: const LinearGradient(colors: [
+                                  Colors.blue,
+                                  Color(0xff281537),
+                                ]),
                               ),
-                            ),
-                          ),
-                          obscureText: !_isPasswordVisible,
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Password cannot be empty';
-                            } else if (value.length < 6) {
-                              return 'Password must be at least 6 characters long';
-                            }
-                            return null;
-                          },
-                        ),
-                        const SizedBox(height: 20),
-                        // Forgot password text
-                        const Align(
-                          alignment: Alignment.centerRight,
-                          child: Text(
-                            'Forgot Password?',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 17,
-                              color: Color(0xff281537),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 70),
-                        // Sign In button
-                        GestureDetector(
-                          onTap: _validateAndSubmit,
-                          child: Container(
-                            height: 55,
-                            width: 300,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(30),
-                              gradient: const LinearGradient(colors: [
-                                Colors.blue,
-                                Color(0xff281537),
-                              ]),
-                            ),
-                            child: const Center(
-                              child: Text(
-                                'SIGN IN',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 20,
-                                  color: Colors.white,
+                              child: const Center(
+                                child: Text(
+                                  'SIGN IN',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 20,
+                                    color: Colors.white,
+                                  ),
                                 ),
                               ),
                             ),
                           ),
-                        ),
-                        const SizedBox(height: 150),
-                        // Sign up text
-                        const Align(
-                          alignment: Alignment.bottomRight,
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            crossAxisAlignment: CrossAxisAlignment.end,
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Text(
                                 "Don't have an account?",
                                 style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.grey,
-                                ),
+                                    color:
+                                        const Color.fromARGB(255, 61, 63, 204),
+                                    fontSize: 16),
                               ),
-                              Text(
-                                "Sign up",
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 17,
-                                  color: Colors.black,
-                                ),
+                              CustomTextButton(
+                                text: "Sign up",
+                                onPressed: () {
+                                  Navigator.pushReplacementNamed(
+                                      context, RegScreen.id);
+                                },
                               ),
                             ],
-                          ),
-                        ),
-                      ],
+                          )
+                        ],
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
+    );
+  }
+
+  Future<void> loginUsers() async {
+    UserCredential user =
+        await FirebaseAuth.instance.signInWithEmailAndPassword(
+      email: email!,
+      password: password!,
     );
   }
 }
