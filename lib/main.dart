@@ -12,7 +12,7 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  String initialRoute = RegScreen.id;
+  String initialRoute = LoginScreen.id;
   try {
     runApp(Test(
       initialRoute: initialRoute,
